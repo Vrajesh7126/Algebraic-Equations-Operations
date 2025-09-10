@@ -126,52 +126,6 @@ public class ExpressionUtils {
     }
 
     /**
-     * Evaluates a postfix expression consisting of numeric constants.
-     *
-     * @param postfix the postfix expression string
-     * @return the numeric evaluation result
-     */
-    public static double evaluatePostFix(String postfix) {
-        Stack<Double> values = new Stack<>();
-
-        for (int i = 0; i < postfix.length(); i++) {
-            char c = postfix.charAt(i);
-
-            if (Character.isWhitespace(c)) {
-                continue;
-            }
-
-            // Operand (single-digit numbers only)
-            if (Character.isDigit(c)) {
-                values.push((double) (c - '0'));
-            }
-            // Operator
-            else if ("+-*/".indexOf(c) >= 0) {
-                double right = values.pop();
-                double left = values.pop();
-                double result = 0.0;
-
-                switch (c) {
-                    case '+':
-                        result = left + right;
-                        break;
-                    case '-':
-                        result = left - right;
-                        break;
-                    case '*':
-                        result = left * right;
-                        break;
-                    case '/':
-                        result = left / right;
-                        break;
-                }
-                values.push(result);
-            }
-        }
-        return values.peek();
-    }
-
-    /**
      * Builds an expression tree from a postfix expression.
      *
      * @param postfixTokens postfix expression string (tokens separated by space)
@@ -187,6 +141,7 @@ public class ExpressionUtils {
         boolean equalsUsed = false;
 
         for (String token : tokens) {
+            // Operator
             if ("+-*/^=".contains(token)) {
                 if ("=".equals(token)) {
                     if (equalsUsed) {
@@ -210,9 +165,13 @@ public class ExpressionUtils {
                 parent.setRight(right);
                 stack.push(parent);
 
-            } else if (token.matches("[a-zA-Z0-9_]+")) {
+            }
+            // Operand
+            else if (token.matches("[a-zA-Z0-9_]+")) {
                 stack.push(new ExpressionNode(token));
-            } else {
+            }
+            // Any other character
+            else {
                 return null; // invalid token
             }
         }
@@ -312,45 +271,5 @@ public class ExpressionUtils {
             default:
                 throw new IllegalArgumentException("Unknown operator: " + root.getValue());
         }
-    }
-
-    public static boolean isValidInfix(String expr) {
-        if (expr == null || expr.trim().isEmpty())
-            return false;
-
-        int balance = 0;
-        boolean lastWasOperand = false;
-        boolean lastWasOperator = true; // must start with operand
-
-        for (char c : expr.toCharArray()) {
-            if (c == ' ')
-                continue;
-
-            if (Character.isLetterOrDigit(c)) {
-                if (lastWasOperand)
-                    return false; // e.g. "3x 2y"
-                lastWasOperand = true;
-                lastWasOperator = false;
-            } else if ("+-*/^".indexOf(c) >= 0) {
-                if (lastWasOperator)
-                    return false; // e.g. "++"
-                lastWasOperand = false;
-                lastWasOperator = true;
-            } else if (c == '(') {
-                balance++;
-                lastWasOperator = true;
-                lastWasOperand = false;
-            } else if (c == ')') {
-                balance--;
-                if (balance < 0)
-                    return false;
-                lastWasOperand = true;
-                lastWasOperator = false;
-            } else {
-                return false; // illegal char like "#"
-            }
-        }
-
-        return balance == 0 && lastWasOperand;
     }
 }
